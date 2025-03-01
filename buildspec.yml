@@ -29,7 +29,7 @@ phases:
       - export REPOSITORY_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME"
       #- echo ECR Image Name: $REPOSITORY_URI:$IMAGE_TAG
       - echo Checking out aws-cicd branch...
-      - git checkout aws-cicd
+      - git checkout awsdevsec-cicd
 
   build:
     commands:
