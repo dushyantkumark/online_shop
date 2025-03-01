@@ -22,9 +22,9 @@ phases:
       - echo Setting image name and tag...
       - export IMAGE_NAME="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME"
       - export IMAGE_TAG=latest
-      - echo ECR Image Name: $IMAGE_NAME:latest
-      - echo Checking out aws-cicd branch...
-      - git branch
+      #- echo ECR Image Name: $IMAGE_NAME:latest
+      #- echo Checking out aws-cicd branch...
+      #- git branch
 
   build:
     commands:
