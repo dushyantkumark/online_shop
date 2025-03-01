@@ -22,7 +22,7 @@ phases:
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - BUILD_TIMESTAMP=$(date +%Y%m%d%H%M%S)
-      - IMAGE_TAG="$COMMIT_HASH-$BUILD_TIMESTAMP"
+      - IMAGE_TAG="$COMMIT_HASH:$BUILD_TIMESTAMP"
       - export IMAGE_TAG="$IMAGE_TAG"
       - export REPOSITORY_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME"
       - echo ECR Image Name: $REPOSITORY_URI:$IMAGE_TAG
