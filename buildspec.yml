@@ -19,18 +19,19 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-      - IMAGE_NAME="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME"
-      - IMAGE_TAG=v1
+      - echo Setting image name and tag...
+      - export IMAGE_NAME="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME"
+      - export IMAGE_TAG=v1
       - echo ECR Image Name: $IMAGE_NAME:$IMAGE_TAG
       - echo Checking out aws-cicd branch...
-      - git branch
-      - git checkout aws-cicd
+      - git fetch origin aws-cicd  # Fetch the aws-cicd branch from the remote
+      - git checkout aws-cicd      # Checkout the aws-cicd branch
 
   build:
     commands:
       - echo Build started on `date`
       - echo Packaging application into a zip file...
-      - zip -r online_shop.zip * .[^.]*
+      - zip -r online_shop.zip * .[^.]* 
       - echo Building the Docker image...
       - docker build -t $IMAGE_NAME:latest .
       - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$IMAGE_TAG
