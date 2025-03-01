@@ -17,14 +17,13 @@ phases:
 
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR....
+      - echo Logging in to Amazon ECR...
       - aws --version
-      # update the following line with your own region
-      - $(aws ecr get-login --no-include-email --region $AWS_REGION)
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - BUILD_TIMESTAMP=$(date +%Y%m%d%H%M%S)
-      - IMAGE_TAG=${COMMIT_HASH}-${BUILD_TIMESTAMP}
-      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME
+      - export IMAGE_TAG=${COMMIT_HASH}-${BUILD_TIMESTAMP}
+      - export REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME
       - echo ECR Image Name: $REPOSITORY_URI:$IMAGE_TAG
       - echo Checking out aws-cicd branch...
       - git checkout aws-cicd
@@ -46,7 +45,7 @@ phases:
       - echo Uploading zip file to S3 root location...
       - aws s3 cp online_shop.zip s3://my-codepipeline-artifacts-03/online-shop/
       - echo Writing image definitions file...
-      - printf '{"ImageURI":"%s", "Port":8000}' $REPOSITORY_URI:$IMAGE_TAG > imageDefinitions.json
+      - printf '{"ImageURI":"%s", "Port":8000}' "$REPOSITORY_URI:$IMAGE_TAG" > imageDefinitions.json
       - cat imageDefinitions.json
 
 artifacts:
