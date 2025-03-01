@@ -44,9 +44,11 @@ phases:
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
       - echo Running Trivy scan for vulnerabilities...
       - trivy --version
-      - trivy image --severity HIGH,CRITICAL --format json $REPOSITORY_URI:$IMAGE_TAG > vulnerability_scan_results_$(date +%Y%m%d%H%M%S).json
+      - TIMESTAMP=$(date +%Y%m%d%H%M%S) # Capture the timestamp
+      - trivy image --severity HIGH,CRITICAL --format json $REPOSITORY_URI:$IMAGE_TAG > vulnerability_scan_results_$TIMESTAMP.json
       - echo Uploading vulnerability scan results to S3...
-      - aws s3 cp vulnerability_scan_results_$(date +%Y%m%d%H%M%S).json s3://my-codepipeline-artifacts-03/online-shop/trivy_image_vulnerablity/
+      - ls -la
+      - aws s3 cp vulnerability_scan_results_$TIMESTAMP.json s3://my-codepipeline-artifacts-03/online-shop/trivy_image_vulnerablity/
       - echo Build completed on `date`
 
   post_build:
