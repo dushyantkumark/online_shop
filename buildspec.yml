@@ -21,6 +21,8 @@ phases:
       - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
       - IMAGE_REPO_NAME="online-shop-app-demo"
       - IMAGE_NAME="$DOCKER_REGISTRY_USERNAME/$IMAGE_REPO_NAME"
+      - VERSION_TAG=$(git rev-parse --short HEAD)
+      - echo Using version tag: $VERSION_TAG
 
   build:
     commands:
@@ -28,7 +30,7 @@ phases:
       - echo Packaging application into a zip file...
       - zip -r online-shop-app.zip * .[^.]* # Include all files and directories, including hidden files
       - echo Building the Docker image...
-      - docker build -t $IMAGE_NAME:latest .
+      - docker build -t $IMAGE_NAME:$VERSION_TAG .
 
   post_build:
     commands:
@@ -36,7 +38,7 @@ phases:
       - docker images
       - docker ps -a
       - echo Pushing the Docker image...
-      - docker push $IMAGE_NAME:latest
+      - docker push $IMAGE_NAME:$VERSION_TAG
       - echo Uploading zip file to S3 root location...
       - aws s3 cp online-shop-app.zip s3://my-codepipeline-artifacts-03/online-shop-app/ # Upload zip file to the root of the bucket
       - echo Writing image definitions file...
