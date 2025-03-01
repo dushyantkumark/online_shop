@@ -14,6 +14,11 @@ phases:
       - echo Installing Node.js and npm...
       - n 12.2.0
       - npm config set registry https://registry.npmjs.org/
+      - echo Installing Trivy...
+      - wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_$(uname -s)_$(uname -m).tar.gz
+      - tar zxvf trivy_$(uname -s)_$(uname -m).tar.gz
+      - mv trivy /usr/local/bin/
+      - trivy --version
 
   pre_build:
     commands:
@@ -22,21 +27,22 @@ phases:
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - BUILD_TIMESTAMP=$(date +%Y%m%d%H%M%S)
-      - IMAGE_TAG=$COMMIT_HASH-$BUILD_TIMESTAMP
+      - IMAGE_TAG="$COMMIT_HASH-$BUILD_TIMESTAMP"
       - export IMAGE_TAG="$IMAGE_TAG"
       - export REPOSITORY_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME"
-      #- echo ECR Image Name: $REPOSITORY_URI:$IMAGE_TAG
       - echo Checking out aws-cicd branch...
       - git checkout aws-cicd
 
   build:
     commands:
+      - set -e
       - echo Build started on `date`
       - echo Packaging application into a zip file...
-      - zip -r online_shop.zip * .[^.]* 
+      - zip -r online_shop.zip * .[^.]*
       - echo Building the Docker image...
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
       - echo Running Trivy scan for vulnerabilities...
+      - trivy --version
       - trivy image --severity HIGH,CRITICAL --format json $REPOSITORY_URI:$IMAGE_TAG > vulnerability_scan_results_$(date +%Y%m%d%H%M%S).json
       - echo Uploading vulnerability scan results to S3...
       - aws s3 cp vulnerability_scan_results_$(date +%Y%m%d%H%M%S).json s3://my-codepipeline-artifacts-03/online-shop/trivy_image_vulnerablity/
