@@ -17,34 +17,36 @@ phases:
 
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-      - echo Setting image name and tag...
-      - export IMAGE_NAME="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME"
-      - export IMAGE_TAG=latest
-      #- echo ECR Image Name: $IMAGE_NAME:latest
-      #- echo Checking out aws-cicd branch...
-      #- git branch
+      - echo Logging in to Amazon ECR....
+      - aws --version
+      # update the following line with your own region
+      - $(aws ecr get-login --no-include-email --region $AWS_REGION)
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - BUILD_TIMESTAMP=$(date +%Y%m%d%H%M%S)
+      - IMAGE_TAG=${COMMIT_HASH}-${BUILD_TIMESTAMP}
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME
+      - echo ECR Image Name: $REPOSITORY_URI:$IMAGE_TAG
+      - echo Checking out aws-cicd branch...
+      - git checkout aws-cicd
 
   build:
     commands:
       - echo Build started on `date`
       - echo Packaging application into a zip file...
-      - zip -r online_shop.zip * .[^.]* 
+      - zip -r online_shop.zip * .[^.]*
       - echo Building the Docker image...
-      - docker build -t $IMAGE_NAME:latest .
-      - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$IMAGE_TAG
+      - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
 
   post_build:
     commands:
       - echo Build completed on `date`
       - docker images
       - echo Pushing the Docker image to Amazon ECR...
-      - docker push $IMAGE_NAME:$IMAGE_TAG
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Uploading zip file to S3 root location...
       - aws s3 cp online_shop.zip s3://my-codepipeline-artifacts-03/online-shop/
       - echo Writing image definitions file...
-      - printf "{\"ImageURI\":\"%s\", \"Port\":8000}" $IMAGE_NAME:$IMAGE_TAG > imageDefinitions.json
+      - printf '{"ImageURI":"%s", "Port":8000}' $REPOSITORY_URI:$IMAGE_TAG > imageDefinitions.json
       - cat imageDefinitions.json
 
 artifacts:
