@@ -8,17 +8,17 @@ env:
 
 phases:
   install:
-    runtime-versions:
-      nodejs: 12.2.0
-    commands:
-      - echo Installing Node.js and npm...
-      - n 12.2.0
-      - npm config set registry https://registry.npmjs.org/
-      - echo Installing Trivy...
-      - wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_$(uname -s)_$(uname -m).tar.gz
-      - tar zxvf trivy_$(uname -s)_$(uname -m).tar.gz
-      - mv trivy /usr/local/bin/
-      - trivy --version
+  runtime-versions:
+    nodejs: 12.2.0
+  commands:
+    - echo Installing Node.js and npm...
+    - n 12.2.0
+    - npm config set registry https://registry.npmjs.org/
+    - echo Installing Trivy...
+    - wget https://github.com/aquasecurity/trivy/releases/download/v0.59.1/trivy_Linux_x86_64.tar.gz
+    - tar zxvf trivy_Linux_x86_64.tar.gz
+    - mv trivy /usr/local/bin/
+    - trivy --version
 
   pre_build:
     commands:
