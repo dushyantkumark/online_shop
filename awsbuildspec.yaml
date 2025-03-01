@@ -21,12 +21,10 @@ phases:
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
       - echo Setting image name and tag...
       - export IMAGE_NAME="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME"
-      - export IMAGE_TAG=v1
+      - export IMAGE_TAG=latest
       - echo ECR Image Name: $IMAGE_NAME:latest
       - echo Checking out aws-cicd branch...
-      #- git fetch origin aws-cicd  # Fetch the aws-cicd branch from the remote
       - git branch
-      #- git checkout aws-cicd      # Checkout the aws-cicd branch
 
   build:
     commands:
