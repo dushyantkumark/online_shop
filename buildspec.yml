@@ -23,6 +23,7 @@ phases:
       - IMAGE_TAG=v1
       - echo ECR Image Name: $IMAGE_NAME:$IMAGE_TAG
       - echo Checking out aws-cicd branch...
+      - git branch
       - git checkout aws-cicd
 
   build:
