@@ -33,6 +33,8 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
+      - docker images
+      - docker ps -a
       - echo Pushing the Docker image...
       - docker push $IMAGE_NAME:latest
       - echo Uploading zip file to S3 root location...
