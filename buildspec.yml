@@ -21,14 +21,14 @@ phases:
       - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
       - IMAGE_REPO_NAME="online-shop-app-demo"
       - IMAGE_NAME="$DOCKER_REGISTRY_USERNAME/$IMAGE_REPO_NAME"
-      - VERSION_TAG=$(date +'%Y%m%d%H%M%S')
-      - echo Using version tag: $VERSION_TAG
 
   build:
     commands:
       - echo Build started on `date`
       - echo Packaging application into a zip file...
       - zip -r online-shop-app.zip * .[^.]* # Include all files and directories, including hidden files
+      - VERSION_TAG=$(date +'%Y%m%d%H%M%S')
+      - echo Using version tag: $VERSION_TAG
       - echo Building the Docker image...
       - docker build -t $IMAGE_NAME:$VERSION_TAG .
 
