@@ -2,9 +2,9 @@ version: 0.2
 
 env:
   parameter-store:
-    DOCKER_REGISTRY_USERNAME: /myapp/docker-credentials/username
-    DOCKER_REGISTRY_PASSWORD: /myapp/docker-credentials/password
-    DOCKER_REGISTRY_URL: /myapp/docker-registry/url
+    AWS_ACCOUNT_ID: /myapp/aws-account-id
+    AWS_REGION: /myapp/aws-region
+    ECR_REPOSITORY_NAME: /myapp/ecr-repository/name
 
 phases:
   install:
@@ -17,17 +17,19 @@ phases:
 
   pre_build:
     commands:
-      - echo Logging in to Docker Registry...
-      - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
-      - IMAGE_REPO_NAME="online-shop-app-demo"
-      - IMAGE_NAME="$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/$IMAGE_REPO_NAME"
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - IMAGE_NAME="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME"
       - IMAGE_TAG=v1
+      - echo ECR Image Name: $IMAGE_NAME:$IMAGE_TAG
+      - echo Checking out aws-cicd branch...
+      - git checkout aws-cicd
 
   build:
     commands:
       - echo Build started on `date`
       - echo Packaging application into a zip file...
-      - zip -r online_shop.zip * .[^.]* # Include all files and directories, including hidden files
+      - zip -r online_shop.zip * .[^.]*
       - echo Building the Docker image...
       - docker build -t $IMAGE_NAME:latest .
       - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$IMAGE_TAG
@@ -36,11 +38,10 @@ phases:
     commands:
       - echo Build completed on `date`
       - docker images
-      - docker ps -a
-      - echo Pushing the Docker image...
+      - echo Pushing the Docker image to Amazon ECR...
       - docker push $IMAGE_NAME:$IMAGE_TAG
       - echo Uploading zip file to S3 root location...
-      - aws s3 cp online_shop.zip s3://my-codepipeline-artifacts-03/online-shop/ # Upload zip file to the root of the bucket
+      - aws s3 cp online_shop.zip s3://my-codepipeline-artifacts-03/online-shop/
       - echo Writing image definitions file...
       - printf '{"ImageURI":"%s", "Port":8000}' $IMAGE_NAME:$IMAGE_TAG > imageDefinitions.json
       - cat imageDefinitions.json
