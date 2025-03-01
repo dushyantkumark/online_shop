@@ -19,12 +19,19 @@ phases:
     commands:
       - echo Logging in to Amazon ECR....
       - aws --version
-      # update the following line with your own region
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - echo "Source Version: $CODEBUILD_RESOLVED_SOURCE_VERSION"
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - IMAGE_TAG=${COMMIT_HASH:=latest}
+      - echo "Commit Hash: $COMMIT_HASH"
+      - if [ -z "$COMMIT_HASH" ]; then 
+          IMAGE_TAG="latest"; 
+          echo "Commit Hash is empty. Setting Image Tag to: $IMAGE_TAG"; 
+        else 
+          IMAGE_TAG="$COMMIT_HASH"; 
+          echo "Commit Hash is: $IMAGE_TAG"; 
+        fi
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME
-      - echo ECR Image Name: $REPOSITORY_URI:$IMAGE_TAG
+      - echo "ECR Image Name: $REPOSITORY_URI:$IMAGE_TAG"
       - echo Checking out aws-cicd branch...
       - git checkout aws-cicd
 
@@ -32,7 +39,7 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Packaging application into a zip file...
-      - zip -r online_shop.zip * .[^.]* 
+      - zip -r online_shop.zip * .[^.]*
       - echo Building the Docker image...
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
