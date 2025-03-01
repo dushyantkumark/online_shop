@@ -1,0 +1,62 @@
+version: 0.2
+
+env:
+  parameter-store:
+    AWS_ACCOUNT_ID: /myapp/aws-account-id
+    AWS_REGION: /myapp/aws-region
+    ECR_REPOSITORY_NAME: /myapp/ecr-repository/name
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 12.2.0
+    commands:
+      - echo Installing Node.js and npm...
+      - n 12.2.0
+      - npm config set registry https://registry.npmjs.org/
+
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - echo Setting image name and tag...
+      - export IMAGE_NAME="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME"
+      - export IMAGE_TAG=v1
+      - echo ECR Image Name: $IMAGE_NAME:latest
+      - echo Checking out aws-cicd branch...
+      #- git fetch origin aws-cicd  # Fetch the aws-cicd branch from the remote
+      - git branch
+      #- git checkout aws-cicd      # Checkout the aws-cicd branch
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Packaging application into a zip file...
+      - zip -r online_shop.zip * .[^.]* 
+      - echo Building the Docker image...
+      - docker build -t $IMAGE_NAME:latest .
+      - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$IMAGE_TAG
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - docker images
+      - echo Pushing the Docker image to Amazon ECR...
+      - docker push $IMAGE_NAME:$IMAGE_TAG
+      - echo Uploading zip file to S3 root location...
+      - aws s3 cp online_shop.zip s3://my-codepipeline-artifacts-03/online-shop/
+      - echo Writing image definitions file...
+      - printf '{"ImageURI":"%s", "Port":8000}' $IMAGE_NAME:$IMAGE_TAG > imageDefinitions.json
+      - cat imageDefinitions.json
+
+artifacts:
+  files:
+    - '**/*'
+  base-directory: '.'
+  discard-paths: no
+  exclude-patterns:
+    - 'node_modules/**/*'
+    - '.git/**/*'
+    - '.gitignore'
+    - 'README.md'
+    - 'package-lock.json'
