@@ -17,21 +17,15 @@ phases:
 
   pre_build:
     commands:
-      - echo Logging in to Amazon ECR....
+      - echo Logging in to Amazon ECR...
       - aws --version
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-      - echo "Source Version: $CODEBUILD_RESOLVED_SOURCE_VERSION"
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - echo "Commit Hash: $COMMIT_HASH"
-      - if [ -z "$COMMIT_HASH" ]; then 
-          IMAGE_TAG="latest"; 
-          echo "Commit Hash is empty. Setting Image Tag to: $IMAGE_TAG"; 
-        else 
-          IMAGE_TAG="$COMMIT_HASH"; 
-          echo "Commit Hash is: $IMAGE_TAG"; 
-        fi
-      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME
-      #- echo "ECR Image Name: $REPOSITORY_URI:$IMAGE_TAG"
+      - BUILD_TIMESTAMP=$(date +%Y%m%d%H%M%S)
+      - IMAGE_TAG=$COMMIT_HASH-$BUILD_TIMESTAMP
+      - export IMAGE_TAG="$IMAGE_TAG"
+      - export REPOSITORY_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME"
+      #- echo ECR Image Name: $REPOSITORY_URI:$IMAGE_TAG
       - echo Checking out aws-cicd branch...
       - git checkout aws-cicd
 
@@ -41,8 +35,7 @@ phases:
       - echo Packaging application into a zip file...
       - zip -r online_shop.zip * .[^.]*
       - echo Building the Docker image...
-      - docker build -t $REPOSITORY_URI:latest .
-      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+      - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
 
   post_build:
     commands:
@@ -53,7 +46,7 @@ phases:
       - echo Uploading zip file to S3 root location...
       - aws s3 cp online_shop.zip s3://my-codepipeline-artifacts-03/online-shop/
       - echo Writing image definitions file...
-      - printf '{"ImageURI":"%s", "Port":8000}' $REPOSITORY_URI:$IMAGE_TAG > imageDefinitions.json
+      - printf '{"ImageURI":"%s", "Port":8000}' "$REPOSITORY_URI:$IMAGE_TAG" > imageDefinitions.json
       - cat imageDefinitions.json
 
 artifacts:
