@@ -32,7 +32,7 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Packaging application into a zip file...
-      - zip -r online_shop.zip * .[^.]*
+      - zip -r online_shop.zip * .[^.]* 
       - echo Building the Docker image...
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
