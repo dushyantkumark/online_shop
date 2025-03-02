@@ -46,7 +46,7 @@ phases:
       - echo Uploading zip file to S3 root location...
       - aws s3 cp online_shop.zip s3://my-codepipeline-artifacts-03/online-shop/
       - echo Writing image definitions file...
-      - printf '{"ImageURI":"%s", "Port":8000}' "$REPOSITORY_URI:$IMAGE_TAG" > imageDefinitions.json
+      - printf '{"ImageURI":"%s", "Port":5173}' "$REPOSITORY_URI:$IMAGE_TAG" > imageDefinitions.json
       - cat imageDefinitions.json
 
 artifacts:
