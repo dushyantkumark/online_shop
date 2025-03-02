@@ -16,4 +16,4 @@ echo "Pulling latest image from ECR..."
 docker pull $REPOSITORY_URI:$IMAGE_TAG
 
 echo "Starting container..."
-docker run -d -p 5173:5173 --name online-shop-container $REPOSITORY_URI:$IMAGE_TAG
+docker run -d -p 80:5173 --name online-shop-container $REPOSITORY_URI:$IMAGE_TAG
