@@ -26,8 +26,8 @@ phases:
       - export IMAGE_TAG="$IMAGE_TAG"
       - export REPOSITORY_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME"
       #- echo ECR Image Name: $REPOSITORY_URI:$IMAGE_TAG
-      - echo Checking out aws-cicd branch...
-      - git checkout aws-cicd
+      - echo Checking aws-cicd branch...
+      - git branch
 
   build:
     commands:
