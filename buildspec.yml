@@ -25,7 +25,7 @@ phases:
       - IMAGE_TAG=$COMMIT_HASH-$BUILD_TIMESTAMP
       - export IMAGE_TAG="$IMAGE_TAG"
       - export REPOSITORY_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY_NAME"
-      - echo "Generated IMAGE_TAG: $IMAGE_TAG"
+      #- echo "Generated IMAGE_TAG: $IMAGE_TAG"
 
   build:
     commands:
